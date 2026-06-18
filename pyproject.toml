@@ -1,0 +1,41 @@
+[project]
+name = "yazidansese"
+version = "0.1.0"
+description = "Yazıdan Sese"
+readme = "README.md"
+requires-python = ">=3.13"
+LICENSE = "Apache-2.0"
+dependencies = [
+    "torch>=2.0.0",
+    "gradio>=4.0.0",
+    "torchaudio>=2.0.0",
+    "transformers>=4.41.0",
+    "numpy>=1.26.4",
+    "nltk>=3.8.1",
+    "pydub>=0.25.1",
+]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+torchaudio = { index = "pytorch-cpu" }
+
+[dependency-groups]
+dev = [
+    "ruff>=0.3.0",
+    "pre-commit>=3.6.0",
+]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+# E/F: Pyflakes/Error, I: isort, N: pep8-naming, UP: pyupgrade, B: flake8-bugbear
+select = ["E", "F", "I", "N", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
