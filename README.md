@@ -48,7 +48,6 @@ Bu projeyi ZIP olarak indirin ve bir klasöre çıkartın. Terminali (veya Komut
 ## Kullanım
 
 Terminalde şu tek komutu yazmanız yeterlidir:
-
 ```bash
 uv run python main.py
 ```
@@ -87,7 +86,7 @@ uv run gradio main.py
 
 Öncelikle space deposu ek remote olarak eklenmeli:
 
-    git remote add space https://huggingface.co/spaces/tekrei/sestenyaziya
+    git remote add space https://huggingface.co/spaces/tekrei/yazidansese
 
 Daha sonra yeni sürümler de oraya itilebilir:
 
@@ -101,4 +100,4 @@ Yapılandırma bilgileri için: <https://huggingface.co/docs/hub/spaces-config-r
 
 `sdk_version`, [requirements.txt](./requirements.txt) içindeki Gradio sürümüne eşit olmalıdır.
 
-İşlem başarılı olursa uygulamaya şuradan erişilebilir: <https://huggingface.co/spaces/tekrei/sestenyaziya>
+İşlem başarılı olursa uygulamaya şuradan erişilebilir: <https://huggingface.co/spaces/tekrei/yazidansese>
