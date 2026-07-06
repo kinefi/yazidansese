@@ -1,7 +1,6 @@
-import logging
 import os
 
-logger = logging.getLogger(__name__)
+from app.logger import logger
 
 def get_directory_size(path: str) -> float:
     """Calculates the total size of files in a given directory in MB."""

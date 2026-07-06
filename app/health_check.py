@@ -11,11 +11,11 @@ def run_health_check():
 
     # 1. Check NLTK data
     try:
-        nltk.data.find("tokenizers/punkt_tab")
-        status_messages.append(("✅ NLTK 'punkt_tab' data found.", "green"))
+        nltk.data.find("tokenizers/punkt")
+        status_messages.append(("✅ NLTK 'punkt' data found.", "green"))
     except LookupError:
-        status_messages.append(("❌ NLTK 'punkt_tab' data not found. "
-        "Run `setup_nltk()` or `nltk.download('punkt_tab')`.", "red"))
+        status_messages.append(("❌ NLTK 'punkt' data not found. "
+        "Run `setup_nltk()` or `nltk.download('punkt')`.", "red"))
 
     # 2. Check GPU availability
     if DEVICE == "cuda":

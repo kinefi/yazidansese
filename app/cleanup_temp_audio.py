@@ -1,11 +1,9 @@
 import glob
-import logging
 import os
 import tempfile
 import time
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+from app.logger import logger
 
 def cleanup_temp_audio_files(age_threshold_seconds: int = 3600):
     """

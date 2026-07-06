@@ -3,7 +3,7 @@ from app.config import CACHE_AUDIO_DIR, DEFAULT_MODEL_NAME, FALLBACK_MODEL_NAMES
 from app.model_service import load_model  # Assuming load_model now accepts progress
 from app.text_processing import setup_nltk
 from app.ui import render_interface
-from app.utils import logger
+from app.logger import logger
 
 # Download NLTK data for sentence tokenization
 setup_nltk()

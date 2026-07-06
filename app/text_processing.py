@@ -1,8 +1,9 @@
 import json
-import logging
 import os
 import re
 from functools import lru_cache
+
+from app.logger import logger
 
 import nltk
 import requests
@@ -14,7 +15,6 @@ from .constants import ACRONYMS_URL
 
 # Set seed for reproducible language detection
 DetectorFactory.seed = 42
-logger = logging.getLogger(__name__)
 
 def _load_acronyms_from_json(file_path: str) -> dict:
     """Loads acronyms from a JSON file."""
@@ -64,10 +64,18 @@ def expand_acronyms(text: str, acronym_dict: dict) -> str:
 
 # Download NLTK data for sentence tokenization
 def setup_nltk():
-    try:
-        nltk.data.find("tokenizers/punkt_tab")
-    except LookupError:
-        nltk.download("punkt_tab")
+    # Ensure both the base Punkt tokenizer and the language-specific Punkt tab data are installed.
+    # Turkish sentence tokenization requires punkt_tab for the Turkish model.
+    required_packages = [
+        ("tokenizers/punkt", "punkt"),
+        ("tokenizers/punkt_tab", "punkt_tab"),
+    ]
+    for resource, package in required_packages:
+        try:
+            nltk.data.find(resource)
+        except LookupError:
+            nltk.download(package)
+
 
 def detect_language(text: str) -> str:
     """Detects the language of the text, falling back to 'tr'."""

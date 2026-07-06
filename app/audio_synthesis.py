@@ -1,12 +1,9 @@
-import logging
-
 import numpy as np
 import torch
 from transformers import AutoTokenizer, VitsModel
 
+from app.logger import logger
 from .config import DEVICE
-
-logger = logging.getLogger(__name__)
 
 def synthesize_chunks(
     chunks: list[str],

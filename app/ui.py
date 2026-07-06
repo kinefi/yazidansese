@@ -21,7 +21,7 @@ from app.config import (
 from app.health_check import run_health_check
 from app.model_service import load_model
 from app.text_processing import chunk_text, clean_text
-from app.utils import logger
+from app.logger import logger
 
 
 def synthesize_for_gradio(
@@ -98,13 +98,13 @@ def synthesize_for_gradio(
     audio_segment = create_audio_segment_from_numpy(audio_numpy, sample_rate)
     
     # Export to a temporary file first
-    temp_output_file = tempfile.NamedTemporaryFile(
-        delete=False, suffix=".mp3", prefix="sentez_")
-    audio_segment.export(temp_output_file.name, format="mp3")
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3", prefix="sentez_") as temp_output_file:
+        audio_segment.export(temp_output_file.name, format="mp3")
+        temp_file_path = temp_output_file.name
 
     # --- Caching Logic: Save to cache ---
-    shutil.copy(temp_output_file.name, cache_path)
-    os.remove(temp_output_file.name) # Clean up the temporary file immediately
+    shutil.copy(temp_file_path, cache_path)
+    os.remove(temp_file_path)
     logger.info(f"Audio cached to {cache_path}. Checking cache size...")
     clear_oldest_cache_files(CACHE_AUDIO_DIR, MAX_CACHE_SIZE_MB) # Clear cache after adding new file
     # --- Caching Logic End ---
