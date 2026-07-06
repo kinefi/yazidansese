@@ -47,7 +47,9 @@ Bu projeyi ZIP olarak indirin ve bir klasöre çıkartın. Terminali (veya Komut
 
 ## Kullanım
 
-Terminalde şu tek komutu yazmanız yeterlidir:
+### Uygulamayı Başlatma
+
+Terminalde şu komutu yazmanız yeterlidir:
 ```bash
 uv run python main.py
 ```
@@ -59,10 +61,26 @@ uv run python main.py
 | `--port` | Web arayüzü portu | `7860` |
 | `--share` | Gradio paylaşım linki oluşturur | `False` |
 
-### Hot reload (geliştirme)
+### Geliştirme
+
+#### Geliştirme ortamını kurma
+
+Geliştirme bağımlılıklarını (Ruff linter vb.) yüklemek için:
+```bash
+uv sync --all-groups
+```
+
+#### Hot reload ile çalıştırma
 
 ```bash
 uv run gradio main.py
+```
+
+#### Kod kontrol etme (linting)
+
+```bash
+uv run ruff check app main.py
+uv run ruff format app main.py
 ```
 
 ## Proje Yapısı
@@ -75,12 +93,25 @@ uv run gradio main.py
 
 ## Bağımlılıklar
 
+### Üretim Bağımlılıkları
+
 | Paket | Görev |
 | --- | --- |
 | `transformers` | Model yükleme ve çıkarım |
 | `torch` | Derin öğrenme arka ucu |
 | `nltk` | Metin işleme ve cümle bölme |
 | `gradio` | Web arayüzü |
+| `pydub` | Ses işleme |
+| `tenacity` | Retry mekanizması |
+| `langdetect` | Dil algılama |
+| `num2words` | Sayıdan kelimeye dönüştürme |
+
+### Geliştirme Bağımlılıkları
+
+| Paket | Görev |
+| --- | --- |
+| `ruff` | Python linter ve formatter |
+| `pre-commit` | Git hook yönetimi |
 
 ## HuggingFace Space Deployment
 
@@ -94,7 +125,11 @@ Daha sonra yeni sürümler de oraya itilebilir:
 
 İtmeden önce bağımlılıklar yenilenmelidir:
 
-    ./generate_requirements.sh
+```bash
+./generate_requirements.sh
+```
+
+Bu komut `requirements.txt` dosyasını `uv.lock` ve `pyproject.toml` ile senkronize eder.
 
 Yapılandırma bilgileri için: <https://huggingface.co/docs/hub/spaces-config-reference>
 

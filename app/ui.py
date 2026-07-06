@@ -16,7 +16,6 @@ from app.config import (
     MAX_CACHE_SIZE_MB,
     MAX_CHARS,
     SUPPORTED_MODELS,
-    VOICE_SAMPLES,
 )
 from app.health_check import run_health_check
 from app.model_service import load_model
@@ -27,26 +26,24 @@ from app.logger import logger
 def synthesize_for_gradio(
     text: str,
     model_name: str,
-    voice_type: str,
     normalize: bool,
-    progress=gr.Progress()  # noqa: B008
+    progress=None
 ) -> tuple[tuple[int, np.ndarray], str, str]:
     """
     Synthesizes text into audio using the loaded VITS model.
     Returns a tuple of (sample_rate, audio_numpy_array) for Gradio's Audio component.
     Returns None for the file path if synthesis fails.
     """
-    if progress:
-        # Initialize progress if it's None (e.g., when called without a Gradio context)
-        progress = progress if progress is not None else gr.Progress()
-        progress(0, desc="Initializing synthesis...")
+    if progress is None:
+        progress = gr.Progress()
+    progress(0, desc="Initializing synthesis...")
 
     # Eğer model_name bir anahtar değilse (özel ID girilmişse) direkt ID olarak kullan
     model_id = SUPPORTED_MODELS.get(model_name, model_name)
 
     # --- Caching Logic Start ---
     # Create a unique key for the cache based on relevant inputs
-    cache_key_str = f"{text}|{model_id}|{voice_type}|{normalize}"
+    cache_key_str = f"{text}|{model_id}|{normalize}"
     cache_filename = hashlib.md5(cache_key_str.encode('utf-8')).hexdigest() + ".mp3"
     cache_path = os.path.join(CACHE_AUDIO_DIR, cache_filename)
 
@@ -86,13 +83,11 @@ def synthesize_for_gradio(
     chunks = chunk_text(cleaned_text, max_chars=500)
     logger.info("chars=%d  chunks=%d", len(cleaned_text), len(chunks))
 
-    speaker_idx = VOICE_SAMPLES.get(voice_type)
     audio_numpy = synthesize_chunks(
         progress.tqdm(chunks, desc="Sentezleniyor...") if progress else chunks,
         model,
         tokenizer,
         42, # Fixed seed for reproducibility
-        speaker_id=speaker_idx
     )
 
     audio_segment = create_audio_segment_from_numpy(audio_numpy, sample_rate)
@@ -148,12 +143,6 @@ def render_interface(initial_loaded_model_id: str = None):
                     allow_custom_value=True,
                     info="Listeden seçin veya HuggingFace model ID girin (örn: facebook/mms-tts-tur)."
                 )
-                voice_dropdown = gr.Dropdown(
-                    choices=list(VOICE_SAMPLES.keys()),
-                    value="Kadın (Deneysel)", # Corrected to match an existing key in VOICE_SAMPLES
-                    label="Ses Seçimi",
-                    info="Çok konuşmacılı modeller için ses tonu seçin. Tek konuşmacılı modellerde bu ayar etkisizdir."
-                )
             
             normalize_checkbox = gr.Checkbox(
                 label="Metin Normalizasyonu", 
@@ -183,7 +172,7 @@ def render_interface(initial_loaded_model_id: str = None):
 
             synthesize_button.click(
                 synthesize_for_gradio,
-                inputs=[text_input, model_dropdown, voice_dropdown, normalize_checkbox],
+                inputs=[text_input, model_dropdown, normalize_checkbox],
                 outputs=[audio_output, download_button, cache_status_indicator]
             )
             clear_button.add([
@@ -192,7 +181,6 @@ def render_interface(initial_loaded_model_id: str = None):
                 audio_output,
                 download_button,
                 model_dropdown,
-                voice_dropdown,
                 normalize_checkbox,
                 cache_status_indicator,
             ])

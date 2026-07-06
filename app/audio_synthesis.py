@@ -10,7 +10,6 @@ def synthesize_chunks(
     model: VitsModel,
     tokenizer: AutoTokenizer,
     seed: int,
-    speaker_id: int = None
 ) -> np.ndarray:
     """
     Run inference per chunk, concatenate waveforms.
@@ -25,13 +24,7 @@ def synthesize_chunks(
                 if not chunk.strip():
                     continue
                 inputs = tokenizer(chunk, return_tensors="pt").to(DEVICE)
-                
-                if speaker_id is not None and hasattr(model.config, 'num_speakers') and model.config.num_speakers > 1:
-                    speaker_ids = torch.LongTensor([speaker_id]).to(DEVICE)
-                    output = model(**inputs, speaker_ids=speaker_ids)
-                else:
-                    output = model(**inputs) 
-                
+                output = model(**inputs)
                 audio = output.waveform.squeeze().cpu().numpy()
                 segments.append(audio)
                 segments.append(np.zeros(int(model.config.sampling_rate * 0.2), dtype=np.float32)) # Add a short pause
