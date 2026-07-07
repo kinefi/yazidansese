@@ -1,3 +1,6 @@
+import importlib
+import subprocess
+import sys
 import time
 from functools import lru_cache
 
@@ -8,6 +11,18 @@ from transformers import AutoTokenizer, VitsModel
 
 from app.logger import logger
 from .config import CACHE_DIR, DEVICE, HF_TOKEN
+
+
+def _ensure_tokenizer_runtime() -> None:
+    """Install the tokenizer backends required by some Hugging Face TTS models."""
+    for module_name in ("sentencepiece", "tiktoken"):
+        try:
+            importlib.import_module(module_name)
+        except ImportError:
+            logger.warning("Missing tokenizer backend %s; attempting automatic install.", module_name)
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "--quiet", module_name])
+            importlib.invalidate_caches()
+
 
 # ── Model loading (singleton) ─────────────────────────────────────────────────
 
@@ -24,6 +39,8 @@ def _load_model_cached(model_id: str) -> tuple[VitsModel, AutoTokenizer]:
         logger.info("Attempting to load %s on %s using cache %s …", model_id, DEVICE, CACHE_DIR)
         t0 = time.monotonic()
         token_kwargs = {"token": HF_TOKEN} if HF_TOKEN else {}
+
+        _ensure_tokenizer_runtime()
 
         tokenizer = AutoTokenizer.from_pretrained(
             model_id,

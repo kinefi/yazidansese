@@ -124,68 +124,73 @@ def convert_numbers_to_words(text: str, lang: str = 'tr') -> str:
     return text
 
 def clean_text(text: str, normalize: bool = True) -> str:
-    """Normalize whitespace and remove characters VITS can't handle."""
+    """Normalize article-style text into a more TTS-friendly form."""
+    if not text:
+        return ""
+
     if normalize:
-        # 0. Detect language for context-aware normalization
         lang = detect_language(text)
-        
-        # Load acronyms for normalization (prefer local acronyms.json)
+
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         local_acronyms_path = os.path.join(project_root, "acronyms.json")
         acronym_dict = _load_acronyms_from_json(local_acronyms_path)
         if not acronym_dict:
             acronym_dict = _load_acronyms_from_url(ACRONYMS_URL)
 
-        # 1. Expand acronyms (always apply — langdetect can misclassify short Turkish texts)
         if acronym_dict:
             text = expand_acronyms(text, acronym_dict)
-        
-        # 2. Convert numbers to words
+
         text = convert_numbers_to_words(text, lang=lang)
+        text = text.replace("\n", " \n ")
+        text = re.sub(r"\s+", " ", text)
+        text = re.sub(r"(?<=[\w\)])\. (?=[A-ZÇĞİÖŞÜ])", ".\n", text)
+        text = re.sub(r"(?<!\.)\n+(?!\.)", "\n", text)
+        text = re.sub(r"\s+([,.;:!?])", r"\1", text)
+        text = re.sub(r"([.?!])(?=[A-ZÇĞİÖŞÜ\w])", r"\1 ", text)
+        text = re.sub(r"\s+", " ", text)
 
-    # 3. General cleaning (existing logic)
     text = re.sub(r'\s+', ' ', text)
-    # Strip URLs
     text = re.sub(r'https?://\S+', '', text)
-    # Strip anything outside printable Turkish charset + common punctuation
-    text = re.sub(r'[^\w\s.,!?;:\'\"\-–—()\u00C0-\u024F]',
-                  ' ', text, flags=re.UNICODE)
+    text = re.sub(r'[^\w\s.,!?;:\'"\-–—()]', ' ', text, flags=re.UNICODE)
     return text.strip()
+
+
 def chunk_text(text: str, max_chars: int = 500) -> list[str]:
-    """
-    Split at sentence boundaries to keep each VITS forward pass short.
-    Longer inputs produce degraded prosody; 500-char chunks are safe.
-    """
-    sentences = nltk.sent_tokenize(text, language="turkish")
+    """Split article text into readable chunks for synthesis."""
+    if not text:
+        return []
+
+    paragraphs = [p.strip() for p in re.split(r"\n+", text) if p.strip()]
     chunks: list[str] = []
-    current = ""
 
-    for sentence in sentences:
-        if len(current) + len(sentence) + 1 <= max_chars:
-            current = (current + " " + sentence).strip() if current else sentence.strip()
-        elif sentence.strip():
-            if current:
-                chunks.append(current)
-            # Sentence itself longer than max — hard split on word boundary.
-            if len(sentence) > max_chars:
-                words = sentence.split()
-                current = ""
-                for word in words:
-                    if len(current) + len(word) + 1 <= max_chars:
-                        current = (current + " " + word).strip() if current else word.strip()
-                    else:
-                        if current:
-                            chunks.append(current)
-                        current = word
-                if current: # Add any remaining words in the buffer
+    for paragraph in paragraphs:
+        sentences = nltk.sent_tokenize(paragraph, language="turkish")
+        current = ""
+
+        for sentence in sentences:
+            if len(current) + len(sentence) + 1 <= max_chars:
+                current = (current + " " + sentence).strip() if current else sentence.strip()
+            elif sentence.strip():
+                if current:
                     chunks.append(current)
-                current = "" # Reset current after hard splitting a long sentence
-            else:
-                # The sentence itself fits, but didn't fit with previous sentences
-                chunks.append(sentence.strip())
-                current = "" # Reset current as this sentence is now a chunk
+                if len(sentence) > max_chars:
+                    words = sentence.split()
+                    current = ""
+                    for word in words:
+                        if len(current) + len(word) + 1 <= max_chars:
+                            current = (current + " " + word).strip() if current else word.strip()
+                        else:
+                            if current:
+                                chunks.append(current)
+                            current = word
+                    if current:
+                        chunks.append(current)
+                    current = ""
+                else:
+                    chunks.append(sentence.strip())
+                    current = ""
 
-    if current:
-        chunks.append(current)
+        if current:
+            chunks.append(current)
 
-    return [chunk for chunk in chunks if chunk] # Filter out any empty chunks
+    return [chunk for chunk in chunks if chunk]

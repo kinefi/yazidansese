@@ -1,7 +1,7 @@
 import nltk
 import torch
 
-from .config import DEFAULT_MODEL_NAME, DEVICE, HF_TOKEN, SUPPORTED_MODELS
+from .config import DEVICE, HF_TOKEN, MODEL_ID
 from .model_service import load_model
 
 
@@ -37,10 +37,10 @@ def run_health_check():
 
     # 4. Attempt to load default model (if not already loaded)
     try:
-        load_model(SUPPORTED_MODELS[DEFAULT_MODEL_NAME])
-        status_messages.append((f"✅ Default model '{DEFAULT_MODEL_NAME}' loaded successfully.", "green"))
+        load_model(MODEL_ID)
+        status_messages.append((f"✅ Default model '{MODEL_ID}' loaded successfully.", "green"))
     except Exception as e:
-        status_messages.append((f"❌ Failed to load default model '{DEFAULT_MODEL_NAME}': {str(e)}", "red"))
+        status_messages.append((f"❌ Failed to load default model '{MODEL_ID}': {str(e)}", "red"))
 
     # Format messages for Gradio Markdown
     formatted_messages = ""

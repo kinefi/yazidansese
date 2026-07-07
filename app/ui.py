@@ -10,13 +10,7 @@ from pydub import AudioSegment
 from app.audio_effects import create_audio_segment_from_numpy
 from app.audio_synthesis import synthesize_chunks
 from app.cache_management import clear_oldest_cache_files
-from app.config import (
-    CACHE_AUDIO_DIR,
-    DEFAULT_MODEL_NAME,
-    MAX_CACHE_SIZE_MB,
-    MAX_CHARS,
-    SUPPORTED_MODELS,
-)
+from app.config import CACHE_AUDIO_DIR, MAX_CACHE_SIZE_MB, MAX_CHARS, MODEL_ID
 from app.health_check import run_health_check
 from app.model_service import load_model
 from app.text_processing import chunk_text, clean_text
@@ -25,7 +19,6 @@ from app.logger import logger
 
 def synthesize_for_gradio(
     text: str,
-    model_name: str,
     normalize: bool,
     progress=None
 ) -> tuple[tuple[int, np.ndarray], str, str]:
@@ -38,8 +31,7 @@ def synthesize_for_gradio(
         progress = gr.Progress()
     progress(0, desc="Initializing synthesis...")
 
-    # Eğer model_name bir anahtar değilse (özel ID girilmişse) direkt ID olarak kullan
-    model_id = SUPPORTED_MODELS.get(model_name, model_name)
+    model_id = MODEL_ID
 
     # --- Caching Logic Start ---
     # Create a unique key for the cache based on relevant inputs
@@ -126,53 +118,43 @@ def render_interface(initial_loaded_model_id: str = None):
     with gr.Blocks(title="Yazıdan Sese TTS — Türkçe Metin Okuma") as demo:
         gr.Markdown("# 🔊 Yazıdan Sese TTS — Türkçe Metin Okuma")
         gr.Markdown(
-            "Bu uygulama, Türkçe metinleri konuşmaya dönüştürmek için `facebook/mms-tts-tur` VITS modelini kullanır. "
-            "Metninizi girin, tohum değerini ayarlayın ve sesi oluşturmak için 'Sentezle' düğmesine tıklayın."
+            "Bu uygulama şu anda güvenilir çalışması kanıtlanmış `facebook/mms-tts-tur` modelini kullanır. "
+            "Diğer topluluk modelleri mevcut arayüzde sunulmamaktadır; en iyi sonuç için varsayılan modeli tercih edin."
         )
 
         with gr.Tab("Metin Sentezi"):
-            with gr.Row():
-                model_dropdown = gr.Dropdown(
-                    choices=list(SUPPORTED_MODELS.keys()),
-                    value=(
-                        initial_loaded_model_id
-                        if initial_loaded_model_id
-                        else DEFAULT_MODEL_NAME
-                    ),  # Set initial value based on successful warm-up
-                    label="Model Seçimi",
-                    allow_custom_value=True,
-                    info="Listeden seçin veya HuggingFace model ID girin (örn: facebook/mms-tts-tur)."
-                )
-            
-            normalize_checkbox = gr.Checkbox(
-                label="Metin Normalizasyonu", 
-                value=True, 
-                info="Sayıları yazıya çevirir ve kısaltmaları açar."
-            )
+            with gr.Row(equal_height=False):
+                with gr.Column(scale=1):
+                    normalize_checkbox = gr.Checkbox(
+                        label="Metin Normalizasyonu",
+                        value=True,
+                        info="Sayıları yazıya çevirir ve kısaltmaları açar."
+                    )
 
-            text_input = gr.Textbox(
-                label="Metin (Türkçe)",
-                lines=10,
-                placeholder=(
-                    "Merhaba dünya! Bu bir test cümlesidir. "
-                    "Lütfen buraya sentezlemek istediğiniz Türkçe metni girin."
-                ),
-                info=f"Maksimum {MAX_CHARS} karakter."
-            )
-            char_count_display = gr.Markdown(update_char_count(""))
+                    text_input = gr.Textbox(
+                        label="Metin (Türkçe)",
+                        lines=10,
+                        placeholder=(
+                            "Merhaba dünya! Bu bir test cümlesidir. "
+                            "Lütfen buraya sentezlemek istediğiniz Türkçe metni girin."
+                        ),
+                        info=f"Maksimum {MAX_CHARS} karakter."
+                    )
+                    char_count_display = gr.Markdown(update_char_count(""))
 
-            with gr.Row():
-                synthesize_button = gr.Button("Sentezle", variant="primary") # Make Sentezle button primary
-                clear_button = gr.ClearButton(value="Temizle")
-                download_button = gr.DownloadButton("MP3 İndir", interactive=False) # Initially disabled
-            
-            cache_status_indicator = gr.Markdown("") # Visual indicator for cache status
+                    with gr.Row():
+                        synthesize_button = gr.Button("Sentezle", variant="primary")
+                        clear_button = gr.ClearButton(value="Temizle")
+                        download_button = gr.DownloadButton("MP3 İndir", interactive=False)
 
-            audio_output = gr.Audio(label="Sesi Dinle", type="numpy") # Now in its own row implicitly
+                    cache_status_indicator = gr.Markdown("")
+
+                with gr.Column(scale=1):
+                    audio_output = gr.Audio(label="Sesi Dinle", type="numpy")
 
             synthesize_button.click(
                 synthesize_for_gradio,
-                inputs=[text_input, model_dropdown, normalize_checkbox],
+                inputs=[text_input, normalize_checkbox],
                 outputs=[audio_output, download_button, cache_status_indicator]
             )
             clear_button.add([
@@ -180,7 +162,6 @@ def render_interface(initial_loaded_model_id: str = None):
                 char_count_display,
                 audio_output,
                 download_button,
-                model_dropdown,
                 normalize_checkbox,
                 cache_status_indicator,
             ])

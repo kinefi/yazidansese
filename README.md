@@ -4,7 +4,7 @@ emoji: 🎤
 colorFrom: blue
 colorTo: green
 sdk: gradio
-sdk_version: "6.18.0"
+sdk_version: "6.19.0"
 python_version: "3.13"
 app_file: main.py
 pinned: false
@@ -15,11 +15,13 @@ pinned: false
 
 Türkçe metinleri yüksek kaliteli ses kayıtlarına dönüştüren web uygulaması.
 
-Facebook'un MMS-TTS (VITS) modellerini kullanarak metinden konuşmaya (TTS) dönüşümü sağlar.
+Facebook'un MMS-TTS (VITS) modeli olan `facebook/mms-tts-tur` ile metinden konuşmaya (TTS) dönüşümü sağlar.
+
+Uygulama, şu anda tek bir sabit model kullanır; arayüzde model seçimi bulunmaz. Bu yapı, Hugging Face Space üzerinde daha kararlı bir deneyim sunmak için tercih edilmiştir.
 
 ## Özellikler
 
-- **Türkçe Desteği:** `facebook/mms-tts-tur` VITS modeli ile optimize edilmiş doğal ses sentezi.
+- **Türkçe Desteği:** `facebook/mms-tts-tur` modeli ile optimize edilmiş doğal ses sentezi.
 - **Hız Kontrolü:** Konuşma hızını 0.5x ile 2.0x arasında ayarlayabilme.
 - **Uzun Metin İşleme:** Metni anlamlı parçalara (chunk) bölerek prosodiyi korur ve bellek hatalarını önler.
 - **Deterministik Çıktı:** Seed (tohum) değeri ile aynı metinden her zaman aynı sesin üretilmesini sağlar.
@@ -130,6 +132,8 @@ Daha sonra yeni sürümler de oraya itilebilir:
 ```
 
 Bu komut `requirements.txt` dosyasını `uv.lock` ve `pyproject.toml` ile senkronize eder.
+
+Not: Bazı Hugging Face TTS modelleri tokenizer backend'i olarak `sentencepiece` ve `tiktoken` gerektirebilir. Bu paketler Space kurulumunda dahil edilmelidir; aksi halde model yükleme sırasında tokenizer hatası alınabilir.
 
 Yapılandırma bilgileri için: <https://huggingface.co/docs/hub/spaces-config-reference>
 

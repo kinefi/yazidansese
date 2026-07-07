@@ -2,18 +2,7 @@ import os
 
 import torch
 
-SUPPORTED_MODELS = {
-    "MMS-TTS (facebook)": "facebook/mms-tts-tur",
-    "Multi-Language VITS (OpenBible)": "multilingual-tts/VITS-OpenBible-Turkish",
-    "EveryVoice VITS (OpenBible)": "multilingual-tts/EveryVoice-OpenBible-Turkish",
-    "F5-TTS (OpenBible)": "multilingual-tts/F5-TTS-OpenBible-Turkish",
-}
-
-FALLBACK_MODEL_NAMES = [
-    "MMS-TTS (facebook)",
-]
-
-DEFAULT_MODEL_NAME = "MMS-TTS (facebook)"
+MODEL_ID = "facebook/mms-tts-tur"
 # Shared cache directory for models
 CACHE_DIR = "cache/models"
 

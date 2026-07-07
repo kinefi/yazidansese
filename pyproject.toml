@@ -6,19 +6,21 @@ readme = "README.md"
 requires-python = ">=3.13"
 LICENSE = "Apache-2.0"
 dependencies = [
-    "torch>=2.0.0",
     "gradio>=4.0.0",
-    "torchaudio>=2.0.0",
-    "transformers>=4.41.0",
+    "langdetect>=1.0.9",
+    "num2words>=0.5.13", # Added for number-to-word conversion
     "numpy>=1.26.4",
     "nltk>=3.8.1",
     "sentencepiece>=0.1.99", # Required by some HuggingFace tokenizers
+    "tiktoken>=0.9.0", # Fallback tokenizer backend for some HuggingFace models
     "protobuf", # Required by sentencepiece for some models
-    "num2words>=0.5.13", # Added for number-to-word conversion
+    "pydantic>=2.0,<=2.12.5",
     "pydub>=0.25.1",
-    "tenacity>=9.1.4",
     "requests>=2.34.2",
-    "langdetect>=1.0.9",
+    "tenacity>=9.1.4",
+    "transformers>=4.41.0",
+    "torch>=2.0.0",
+    "torchaudio>=2.0.0",
 ]
 
 [[tool.uv.index]]
